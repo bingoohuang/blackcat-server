@@ -78,12 +78,12 @@
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>cqler</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.bingoohuang</groupId>
             <artifactId>blackcat-sdk</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
