@@ -1,21 +1,17 @@
 package com.github.bingoohuang.blackcat.server.eventlistener;
 
-import com.github.bingoohuang.blackcat.server.dao.BlackcatConfig;
-import com.github.bingoohuang.blackcat.server.dao.EventDao;
-import com.github.bingoohuang.blackcat.server.domain.BlackcatEventLast;
-import com.github.bingoohuang.blackcat.server.domain.BlackcatFileStoresReq;
-import com.github.bingoohuang.blackcat.server.domain.BlackcatEventType;
-import com.github.bingoohuang.blackcat.server.job.AbstractMsgJob;
-import com.github.bingoohuang.blackcat.server.base.MsgService;
 import com.github.bingoohuang.blackcat.sdk.utils.StrBuilder;
 import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.github.bingoohuang.blackcat.server.base.MsgService;
+import com.github.bingoohuang.blackcat.server.dao.EventDao;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatEventLast;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatEventType;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatFileStoresReq;
+import com.github.bingoohuang.blackcat.server.job.AbstractMsgJob;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.github.bingoohuang.blackcat.sdk.utils.Blackcats.prettyBytes;
 
@@ -23,15 +19,13 @@ import static com.github.bingoohuang.blackcat.sdk.utils.Blackcats.prettyBytes;
 public class BlackcatFileStoresReqListener implements BlackcatReqListener {
     @Autowired MsgService msgService;
     @Autowired EventDao eventDao;
-    @Autowired @Qualifier("times") ConcurrentHashMultiset<String> times;
-    @Autowired @Qualifier("beats") ConcurrentHashMap<String, Long> beats;
-    @Autowired BlackcatConfig.ConfigThreshold configThreshold;
+    @Autowired BlackcatConfigBean bean;
 
     @Subscribe
     public void deal(BlackcatFileStoresReq req) {
         String hostname = req.getHostname();
-        times.add(hostname + AbstractMsgJob.FILE_STORES_TIMES);
-        beats.put(hostname, System.currentTimeMillis());
+        bean.getTimes().add(hostname + AbstractMsgJob.FILE_STORES_TIMES);
+        bean.getBeats().put(hostname, System.currentTimeMillis());
 
         tryAlert(req);
 
@@ -41,8 +35,8 @@ public class BlackcatFileStoresReqListener implements BlackcatReqListener {
     }
 
     private void tryAlert(BlackcatFileStoresReq req) {
-        long configLowSize = configThreshold.getAvailDiskLowSize();
-        int configLowRatio = configThreshold.getAvailDiskLowRatio();
+        long configLowSize = bean.getConfigThreshold().getAvailDiskLowSize();
+        int configLowRatio = bean.getConfigThreshold().getAvailDiskLowRatio();
 
         StrBuilder alert = StrBuilder.str('\n').p(req.getHostname());
         boolean hasAlert = false;
@@ -60,14 +54,14 @@ public class BlackcatFileStoresReqListener implements BlackcatReqListener {
             hasAlert = true;
             alert.p('\n').p(fileStoreName).p("可用").p(prettyBytes(avail));
 
-            if (isLowSize) alert.p(", 低于告警阀值").p(prettyBytes(configLowSize));
-            if (isLowRatio) alert.p(", 低于可用比例").p(ratio).p('%');
+            if (isLowSize) alert.p(", 低于阀值").p(prettyBytes(configLowSize));
+            if (isLowRatio) alert.p(", 低于比例").p(ratio).p('%');
         }
 
         if (!hasAlert) return;
 
-        times.add(req.getHostname() + AbstractMsgJob.FILE_STORES_ALERTS);
-        msgService.sendMsg("服务器磁盘告警", alert.toString());
+        bean.getTimes().add(req.getHostname() + AbstractMsgJob.FILE_STORES_ALERTS);
+        msgService.sendMsg("磁盘告警", alert.toString());
     }
 
 }

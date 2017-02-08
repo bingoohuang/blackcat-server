@@ -36,16 +36,16 @@ public interface EventDao {
             "AND event_type = #eventType#")
     void updateEventLast(BlackcatEventLast blackcatEventLast);
 
-    @Cql("INSERT INTO event_method_runtime(invokeId,   hostname, " +
+    @Cql("INSERT INTO event_method_runtime(invokeId, traceId, linkId,   hostname, " +
             "         ts,      className,      methodName,      methodDesc, " +
             "     startMillis,      endMillis,      costNano,      args, " +
             "     pid,      executionId,      result,      throwableCaught," +
-            "      throwableUncaught,      sameThrowable) " +
-            "VALUES(                  #rt.invokeId#, #hostname#, " +
+            "      throwableUncaught,      sameThrowable, throwableMessage) " +
+            "VALUES(                  #rt.invokeId#, #rt.traceId#, #rt.linkId#, #hostname#, " +
             "#timestamp#, #rt.className#, #rt.methodName#, #rt.methodDesc#, " +
             "#rt.startMillis#, #rt.endMillis#, #rt.costNano#, #rt.args#, " +
             "#rt.pid#, #rt.executionId#, #rt.result#, #rt.throwableCaught#, " +
-            "#rt.throwableUncaught#, #rt.sameThrowable#)")
+            "#rt.throwableUncaught#, #rt.sameThrowable#, #rt.throwableMessage#)")
     void addMethodRuntime(BlackcatMethodRuntimeReq blackcatMethodRuntime);
 
     @Cql("INSERT INTO event_trace(traceId, linkId, ts, tsPretty, hostname, msgType, msg) " +

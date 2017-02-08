@@ -1,18 +1,17 @@
 package com.github.bingoohuang.blackcat.server.job;
 
-import com.github.bingoohuang.blackcat.server.base.MsgService;
 import com.github.bingoohuang.blackcat.sdk.utils.StrBuilder;
 import com.github.bingoohuang.blackcat.server.base.BlackcatJob;
+import com.github.bingoohuang.blackcat.server.base.MsgService;
 import com.github.bingoohuang.blackcat.server.base.QuartzScheduler;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static com.github.bingoohuang.blackcat.sdk.utils.Blackcats.format;
 import static org.quartz.DateBuilder.futureDate;
@@ -23,13 +22,11 @@ import static org.quartz.TriggerBuilder.newTrigger;
 @Component
 public class HeartbeatJob implements BlackcatJob {
     @Autowired MsgService msgService;
-
-    @Autowired @Qualifier("configHostnames") List<String> configHostnames;
-    @Autowired @Qualifier("beats") ConcurrentHashMap<String, Long> beats;
+    @Autowired BlackcatConfigBean configBean;
 
     @SneakyThrows @Override
     public void scheduleJob(QuartzScheduler scheduler) {
-        if (configHostnames.isEmpty()) return;
+        if (configBean.getConfigHostnames().isEmpty()) return;
 
         val heartbeatJob = createHeartbeatJobDetail();
         val heartbeatTrigger = createHeartbeatTrigger();
@@ -63,7 +60,9 @@ public class HeartbeatJob implements BlackcatJob {
 
     private void checkHeartbeats() {
         StrBuilder msg = new StrBuilder();
-        for (String hostname : configHostnames) {
+        ConcurrentMap<String, Long> beats = configBean.getBeats();
+
+        for (String hostname : configBean.getConfigHostnames()) {
             Long lastBeat = beats.get(hostname);
             if (lastBeat != null && isLastBeatInOneMinute(lastBeat)) continue;
 

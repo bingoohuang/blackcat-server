@@ -3,22 +3,19 @@ package com.github.bingoohuang.blackcat.server.job;
 import com.github.bingoohuang.blackcat.server.base.BlackcatJob;
 import com.github.bingoohuang.blackcat.server.base.MsgService;
 import com.github.bingoohuang.blackcat.server.base.QuartzScheduler;
-import com.google.common.collect.ConcurrentHashMultiset;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
+import com.google.common.collect.Multiset;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.List;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public abstract class AbstractMsgJob implements BlackcatJob {
     @Autowired MsgService msgService;
-    @Autowired @Qualifier("times") ConcurrentHashMultiset<String> times;
-    @Autowired @Qualifier("configHostnames") List<String> configHostnames;
+    @Autowired BlackcatConfigBean configBean;
 
     @Override
     public void scheduleJob(QuartzScheduler scheduler) {
@@ -74,7 +71,8 @@ public abstract class AbstractMsgJob implements BlackcatJob {
         int lastLoadTimes = 0, lastLoadAlerts = 0;
         int lastProcessTimes = 0, lastProcessAlerts = 0;
 
-        for (String hostname : configHostnames) {
+        Multiset<String> times = configBean.getTimes();
+        for (String hostname : configBean.getConfigHostnames()) {
             lastMemoryTimes += times.count(hostname + MEMORY_TIMES);
             lastMemoryAlerts += times.count(hostname + MEMORY_ALERTS);
 

@@ -1,8 +1,5 @@
 package com.github.bingoohuang.blackcat.server.handler;
 
-import com.github.bingoohuang.blackcat.server.base.BlackcatEventReq;
-import com.github.bingoohuang.blackcat.server.dao.BlackcatConfig;
-import com.github.bingoohuang.blackcat.server.domain.BlackcatMemoryReq;
 import com.github.bingoohuang.blackcat.sdk.BlackcatMsgHandler;
 import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg.BlackcatReq;
 import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg.BlackcatRsp;
@@ -11,9 +8,12 @@ import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg.BlackcatRspHead.
 import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg.BlackcatWarnConfig;
 import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg.BlackcatWarnConfig.BlackcatWarnProcess;
 import com.github.bingoohuang.blackcat.sdk.utils.Blackcats;
+import com.github.bingoohuang.blackcat.server.base.BlackcatEventReq;
 import com.github.bingoohuang.blackcat.server.base.BlackcatJob;
 import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.github.bingoohuang.blackcat.server.base.QuartzScheduler;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatMemoryReq;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
@@ -24,18 +24,16 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 @Component @Slf4j
 public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationContextAware {
     @Autowired QuartzScheduler scheduler;
-    @Autowired @Qualifier("configProcesses") List<BlackcatConfig.ConfigProcess> configProcs;
+    @Autowired BlackcatConfigBean configBean;
     EventBus reqEventBus = new EventBus();
     private ApplicationContext appContext;
 
@@ -93,7 +91,7 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
 
     private BlackcatRsp createConfigRsp(String hostname) {
         val builder = BlackcatWarnConfig.newBuilder();
-        for (val configProcess : configProcs) {
+        for (val configProcess : configBean.getConfigProcesses()) {
             if (!configProcess.getHostnames().contains(hostname)) continue;
 
             val warnProcess = BlackcatWarnProcess.newBuilder()

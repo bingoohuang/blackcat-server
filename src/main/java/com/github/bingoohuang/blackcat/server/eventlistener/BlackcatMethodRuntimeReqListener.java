@@ -1,17 +1,16 @@
 package com.github.bingoohuang.blackcat.server.eventlistener;
 
+import com.github.bingoohuang.blackcat.sdk.protobuf.BlackcatMsg;
 import com.github.bingoohuang.blackcat.sdk.utils.StrBuilder;
 import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.github.bingoohuang.blackcat.server.base.MsgService;
-import com.github.bingoohuang.blackcat.server.dao.BlackcatConfig;
 import com.github.bingoohuang.blackcat.server.dao.EventDao;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
 import com.github.bingoohuang.blackcat.server.domain.BlackcatMethodRuntimeReq;
-import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Matcher;
@@ -25,14 +24,13 @@ import static com.github.bingoohuang.blackcat.server.job.AbstractMsgJob.METHODRU
 public class BlackcatMethodRuntimeReqListener implements BlackcatReqListener {
     @Autowired MsgService msgService;
     @Autowired EventDao eventDao;
-    @Autowired @Qualifier("times") ConcurrentHashMultiset<String> times;
-    @Autowired BlackcatConfig.ConfigThreshold configThreshold;
+    @Autowired BlackcatConfigBean bean;
 
     @Subscribe
     public void deal(BlackcatMethodRuntimeReq req) {
         try {
             String hostname = req.getHostname();
-            times.add(hostname + METHODRUNTIME_TIMES);
+            bean.getTimes().add(hostname + METHODRUNTIME_TIMES);
 
             tryAlert(req);
 
@@ -43,7 +41,13 @@ public class BlackcatMethodRuntimeReqListener implements BlackcatReqListener {
     }
 
     private void tryAlert(BlackcatMethodRuntimeReq req) {
-        val methodMaxMillis = configThreshold.getMethodMaxMillis();
+        val methodMaxMillis = bean.getConfigThreshold().getMethodMaxMillis();
+        if (throwableProcess(req)) return;
+
+        maxMillisProess(req, methodMaxMillis);
+    }
+
+    private void maxMillisProess(BlackcatMethodRuntimeReq req, long methodMaxMillis) {
         val hasAlert = req.getRt().getCostNano() > methodMaxMillis * 1000000;
         if (!hasAlert) return;
 
@@ -52,8 +56,18 @@ public class BlackcatMethodRuntimeReqListener implements BlackcatReqListener {
         alert.p('\n').p(simpleMethodName(req.rt.getMethodDesc()));
         String cost = decimal(req.rt.getCostNano() / 1000000.) + "ms";
 
-        times.add(req.getHostname() + METHODRUNTIME_ALERTS);
+        bean.getTimes().add(req.getHostname() + METHODRUNTIME_ALERTS);
         msgService.sendMsg("方法耗时" + cost, alert.toString());
+    }
+
+    private boolean throwableProcess(BlackcatMethodRuntimeReq req) {
+        BlackcatMsg.BlackcatMethodRuntime rt = req.getRt();
+        if (rt.getThrowableMessage() == null) return false;
+
+        String traceLink = rt.getTraceId() + ":" + rt.getLinkId();
+        msgService.sendMsg("异常来了[" + traceLink + "]", rt.getThrowableMessage());
+
+        return true;
     }
 
     static Pattern classMethod = Pattern.compile("(?<=\\.)(\\w+\\.\\w+)(?=\\()");

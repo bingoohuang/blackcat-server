@@ -1,29 +1,28 @@
 package com.github.bingoohuang.blackcat.server.eventlistener;
 
+import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.github.bingoohuang.blackcat.server.dao.BlackcatConfig;
 import com.github.bingoohuang.blackcat.server.dao.EventDao;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
 import com.github.bingoohuang.blackcat.server.domain.BlackcatMetricReq;
-import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Map;
 
 @Component
 public class BlackcatMetricReqListener implements BlackcatReqListener {
     @Autowired EventDao eventDao;
-    @Autowired @Qualifier("configMetrics") List<BlackcatConfig.ConfigMetric> configMetrics;
+    @Autowired BlackcatConfigBean bean;
     Map<String, Long> divbases = Maps.newHashMap();
 
     @PostConstruct
     public void postConstruct() {
-        for (BlackcatConfig.ConfigMetric configMetric : configMetrics) {
+        for (BlackcatConfig.ConfigMetric configMetric : bean.getConfigMetrics()) {
             divbases.put(configMetric.getName(), configMetric.getDivbase());
         }
     }
