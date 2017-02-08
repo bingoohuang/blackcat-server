@@ -10,6 +10,7 @@ import com.github.bingoohuang.blackcat.server.domain.BlackcatMethodRuntimeReq;
 import com.google.common.eventbus.Subscribe;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +63,7 @@ public class BlackcatMethodRuntimeReqListener implements BlackcatReqListener {
 
     private boolean throwableProcess(BlackcatMethodRuntimeReq req) {
         BlackcatMsg.BlackcatMethodRuntime rt = req.getRt();
-        if (rt.getThrowableMessage() == null) return false;
+        if (StringUtils.isEmpty(rt.getThrowableMessage())) return false;
 
         String traceLink = rt.getTraceId() + ":" + rt.getLinkId();
         msgService.sendMsg("异常来了[" + traceLink + "]", rt.getThrowableMessage());
