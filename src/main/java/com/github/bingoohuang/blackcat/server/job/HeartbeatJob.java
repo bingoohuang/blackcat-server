@@ -11,8 +11,6 @@ import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ConcurrentMap;
-
 import static com.github.bingoohuang.blackcat.sdk.utils.Blackcats.format;
 import static org.quartz.DateBuilder.futureDate;
 import static org.quartz.JobBuilder.newJob;
@@ -59,17 +57,17 @@ public class HeartbeatJob implements BlackcatJob {
     }
 
     private void checkHeartbeats() {
-        StrBuilder msg = new StrBuilder();
-        ConcurrentMap<String, Long> beats = configBean.getBeats();
+        val msg = new StrBuilder();
+        val beats = configBean.getBeats();
 
         for (String hostname : configBean.getConfigHostnames()) {
             Long lastBeat = beats.get(hostname);
-            if (lastBeat != null && isLastBeatInOneMinute(lastBeat)) continue;
+            if (isLastBeatInOneHalfMinute(lastBeat)) continue;
 
             msg.p("\n").p(hostname);
 
             if (lastBeat == null) msg.p("没有检测到心跳");
-            else msg.p("上次心跳").p(format(lastBeat)).p("在1分钟前");
+            else msg.p("上次心跳").p(format(lastBeat)).p("在1分半前");
         }
 
         if (msg.len() == 0) return;
@@ -77,9 +75,9 @@ public class HeartbeatJob implements BlackcatJob {
         msgService.sendMsg("服务器心跳告警", msg.toString());
     }
 
+    private boolean isLastBeatInOneHalfMinute(Long lastBeat) {
+        if (lastBeat == null) return false;
 
-    private boolean isLastBeatInOneMinute(long lastBeat) {
-        return System.currentTimeMillis() - lastBeat <= 60000;
+        return System.currentTimeMillis() - lastBeat <= 90000L;
     }
-
 }
