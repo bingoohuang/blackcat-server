@@ -40,7 +40,7 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
     @SneakyThrows
     public void scheduleJob() {
         val reqListeners = appContext.getBeansOfType(BlackcatJob.class);
-        for (BlackcatJob job : reqListeners.values()) {
+        for (val job : reqListeners.values()) {
             job.scheduleJob(scheduler);
         }
     }
@@ -58,7 +58,7 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
 
     private void registerToEventBus() {
         val reqListeners = appContext.getBeansOfType(BlackcatReqListener.class);
-        for (Object subscriber : reqListeners.values()) {
+        for (val subscriber : reqListeners.values()) {
             reqEventBus.register(subscriber);
         }
     }
@@ -110,15 +110,14 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
 
     private BlackcatEventReq process(BlackcatReq req) throws Exception {
         val packageName = BlackcatMemoryReq.class.getPackage().getName();
-        Object instance = Blackcats.parseReq(packageName, req);
+        val instance = Blackcats.parseReq(packageName, req);
         if (instance != null) reqEventBus.post(instance);
 
         return (BlackcatEventReq) instance;
     }
 
     @Override
-    public void setApplicationContext(
-            ApplicationContext applicationContext) throws BeansException {
-        this.appContext = applicationContext;
+    public void setApplicationContext(ApplicationContext appContext) throws BeansException {
+        this.appContext = appContext;
     }
 }
