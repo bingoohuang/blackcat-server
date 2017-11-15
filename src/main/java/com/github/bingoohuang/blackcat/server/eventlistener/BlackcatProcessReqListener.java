@@ -9,6 +9,7 @@ import com.github.bingoohuang.blackcat.server.domain.BlackcatEventLast;
 import com.github.bingoohuang.blackcat.server.domain.BlackcatProcessReq;
 import com.github.bingoohuang.blackcat.server.job.AbstractMsgJob;
 import com.google.common.eventbus.Subscribe;
+import lombok.experimental.var;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class BlackcatProcessReqListener implements BlackcatReqListener {
 
     @Subscribe
     public void deal(BlackcatProcessReq req) {
-        String hostname = req.getHostname();
+        val hostname = req.getHostname();
         bean.getTimes().add(hostname + AbstractMsgJob.PROCESS_TIMES);
         bean.getBeats().put(hostname, System.currentTimeMillis());
 
@@ -37,7 +38,7 @@ public class BlackcatProcessReqListener implements BlackcatReqListener {
     }
 
     private void tryAlert(BlackcatProcessReq req) {
-        boolean hasAlert = false;
+        var hasAlert = false;
         val alert = StrBuilder.str('\n').p(req.getHostname());
 
         for (val confProcess : bean.getConfigProcesses()) {

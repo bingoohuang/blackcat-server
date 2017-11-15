@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.github.bingoohuang.blackcat.server.domain.BlackcatEventType.Load;
+import static java.lang.Math.min;
 
 @Component
 public class BlackcatLoadReqListener implements BlackcatReqListener {
@@ -40,9 +41,12 @@ public class BlackcatLoadReqListener implements BlackcatReqListener {
         int ratio = (int) (load.getFiveMinsAvg() * 100 / load.getCpuNum());
         if (ratio - 100 <= confRatio) return;
 
+        val topProcessList = load.getTopProcessList();
         val alert = StrBuilder.str('\n').p(req.getHostname())
                 .p("的5分钟负载").p(load.getFiveMinsAvg())
-                .p("超过告警阈值").p(confRatio).p('%');
+                .p("超过告警阈值").p(confRatio).p('%')
+                .p('\n')
+                .p(topProcessList.subList(0, min(topProcessList.size(), 3)));
 
         bean.getTimes().add(req.getHostname() + AbstractMsgJob.LOAD_ALERTS);
         msgService.sendMsg("负载告警", alert.toString());
