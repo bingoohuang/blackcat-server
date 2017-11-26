@@ -174,3 +174,17 @@ CREATE TABLE config_metric (
     divbase bigint, -- eg. 以秒为单位,按小时则为60*60,按分钟则为60,按10分钟则为600
     PRIMARY KEY(name)
 );
+
+-- 日志中的异常
+DROP TABLE IF EXISTS event_log_exception;
+CREATE TABLE event_log_exception (
+    logId text,
+    hostname text,
+    logger text,
+    tcode text,
+    tid text,
+    exceptionNames text,
+    contextLogs text,
+    timestamp text,
+    PRIMARY KEY(logId)
+);
