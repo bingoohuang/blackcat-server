@@ -14,14 +14,13 @@ import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.github.bingoohuang.blackcat.server.base.QuartzScheduler;
 import com.github.bingoohuang.blackcat.server.domain.BlackcatConfigBean;
 import com.github.bingoohuang.blackcat.server.domain.BlackcatMemoryReq;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.EventBus;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -45,10 +44,7 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
         }
     }
 
-    Cache<String, ChannelHandlerContext> ctxCache = CacheBuilder
-            .newBuilder().weakValues().build();
-
-    AttributeKey<String> channelHostname = AttributeKey.valueOf("channelHostname");
+    public static final AttributeKey<String> CHANNEL_HOSTNAME = AttributeKey.valueOf("channelHostname");
 
     @PostConstruct
     public void postConstruct() {
@@ -78,12 +74,9 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
                                    ChannelHandlerContext ctx) {
         if (eventReq == null || !eventReq.isFromBlackcatAgent()) return;
 
-        val hostname = req.getBlackcatReqHead().getHostname();
-        val present = ctxCache.getIfPresent(hostname);
-        if (present == null) {
-            ctxCache.put(hostname, ctx);
-
-            val attr = ctx.attr(channelHostname);
+        val attr = ctx.attr(CHANNEL_HOSTNAME);
+        if (StringUtils.isEmpty(attr.get())) {
+            val hostname = req.getBlackcatReqHead().getHostname();
             attr.set(hostname);
             ctx.write(createConfigRsp(hostname));
         }
@@ -108,9 +101,13 @@ public class CassandraMsgHandler implements BlackcatMsgHandler, ApplicationConte
                 .build();
     }
 
+    public static final String REQ_PACKAGE_NAME = BlackcatMemoryReq.class.getPackage().getName();
+
     private BlackcatEventReq process(BlackcatReq req) throws Exception {
-        val packageName = BlackcatMemoryReq.class.getPackage().getName();
-        val instance = Blackcats.parseReq(packageName, req);
+        log.debug("received req:{}", req);
+        val instance = Blackcats.parseReq(REQ_PACKAGE_NAME, req);
+        log.debug("parsed to instance: {}", instance);
+
         if (instance != null) reqEventBus.post(instance);
 
         return (BlackcatEventReq) instance;

@@ -9,7 +9,7 @@ public interface EventDao {
 
     @Cql("INSERT INTO event_log_exception(logId, logger, tcode, tid, exceptionNames, contextLogs, timestamp) " +
             "VALUES (#logId#, #logger#, #tcode#, #tid#, #exceptionNames#, #contextLogs#, #timestamp#)")
-    void addLogException(BlactcatLogExceptionReq logException);
+    void addLogException(BlackcatLogExceptionReq logException);
 
     @Cql("INSERT INTO event_memory(hostname, ts, total, available) " +
             "VALUES (#hostname#, #timestamp#, #memory.total#, #memory.available#)")

@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data @NoArgsConstructor
-public class BlactcatLogExceptionReq implements BlackcatEventReq {
+public class BlackcatLogExceptionReq implements BlackcatEventReq {
     private String logId;
     private String hostname;
     private String logger;
@@ -18,7 +18,7 @@ public class BlactcatLogExceptionReq implements BlackcatEventReq {
     private String contextLogs;
     private String timestamp;
 
-    public BlactcatLogExceptionReq(BlackcatReqHead head, BlackcatLogException logException) {
+    public BlackcatLogExceptionReq(BlackcatReqHead head, BlackcatLogException logException) {
         this.logId = String.valueOf(WestId.next());
         this.hostname = head.getHostname();
         this.logger = logException.getLogger();

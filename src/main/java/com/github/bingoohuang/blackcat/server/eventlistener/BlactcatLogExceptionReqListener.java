@@ -3,7 +3,7 @@ package com.github.bingoohuang.blackcat.server.eventlistener;
 import com.github.bingoohuang.blackcat.server.base.BlackcatReqListener;
 import com.github.bingoohuang.blackcat.server.base.MsgService;
 import com.github.bingoohuang.blackcat.server.dao.EventDao;
-import com.github.bingoohuang.blackcat.server.domain.BlactcatLogExceptionReq;
+import com.github.bingoohuang.blackcat.server.domain.BlackcatLogExceptionReq;
 import com.google.common.eventbus.Subscribe;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ public class BlactcatLogExceptionReqListener implements BlackcatReqListener {
     @Autowired EventDao eventDao;
 
     @Subscribe
-    public void deal(BlactcatLogExceptionReq req) {
+    public void deal(BlackcatLogExceptionReq req) {
         val msg = new StringBuilder()
                 .append("Host:").append(req.getHostname())
                 .append("\nTs:").append(req.getTimestamp())
