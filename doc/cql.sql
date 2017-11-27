@@ -187,4 +187,4 @@ CREATE TABLE event_log_exception (
     contextLogs text,
     timestamp text,
     PRIMARY KEY(logId)
-);
+) WITH default_time_to_live = 2592000;
