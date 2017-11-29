@@ -5,22 +5,28 @@ import wxpy
 import time
 import os
 
+import sys
+
 from optparse import OptionParser
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-user_home = os.path.expanduser("~")
+reload(sys)
+print sys.getdefaultencoding()
+sys.setdefaultencoding('utf-8')  # 解决parser help中的中文显示问题
 
 parser = OptionParser()
-parser.add_option("-p", "--path", dest="msg_path", default=user_home + '/.qun_msg/',
-                  help="read message files from the path", metavar="Path")
+parser.add_option("-p", "--path", dest="msg_path", default='~/.qun_msg/',
+                  help="messages' path, default ~/.qun_msg/", metavar="Path")
 parser.add_option("-q", "--qun", dest="qun_name", default='奕起嗨运行保障群',
-                  help="wx qun name", metavar="QunName")
+                  help='wx qun name, default 奕起嗨运行保障群', metavar="QunName")
 
 (options, args) = parser.parse_args()
+options.msg_path = os.path.expanduser(options.msg_path)
 
 print('qun_name:' + options.qun_name)
 print('msg_path:' + options.msg_path)
+
 
 # 初始化机器人，扫码登陆
 bot = wxpy.Bot(console_qr=True, cache_path=True)
