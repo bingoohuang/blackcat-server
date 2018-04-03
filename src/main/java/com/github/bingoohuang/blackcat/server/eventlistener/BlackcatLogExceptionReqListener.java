@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BlactcatLogExceptionReqListener implements BlackcatReqListener {
+public class BlackcatLogExceptionReqListener implements BlackcatReqListener {
     @Autowired MsgService msgService;
     @Autowired EventDao eventDao;
 
@@ -21,9 +21,8 @@ public class BlactcatLogExceptionReqListener implements BlackcatReqListener {
                 .append("\nTs:").append(req.getTimestamp())
                 .append("\nLogger:").append(req.getLogger())
                 .append("\nTcode:").append(req.getTcode())
-                .append("\nTid:").append(req.getTid())
-                .append("\nEx:").append(req.getExceptionNames())
-                .append("\nLogId:").append(req.getLogId());
+                .append("\nLogId:").append(req.getLogId())
+                .append("\nEx:").append(req.getExceptionNames());
 
         msgService.sendMsg("日志中发现异常", msg.toString());
         eventDao.addLogException(req);
