@@ -21,10 +21,10 @@ public class BlackcatLogExceptionReqListener implements BlackcatReqListener {
                 .append("\nTs:").append(req.getTimestamp())
                 .append("\nLogger:").append(req.getLogger())
                 .append("\nTcode:").append(req.getTcode())
-                .append("\nLogId:").append(req.getLogId())
+                .append("\nLogId:").append("<a href=\"http://hbm.easy-hi.cn/blackcat-detail/log/" + req.getLogId() + "\">" + req.getLogId() + "</a>")
                 .append("\nEx:").append(req.getExceptionNames());
 
-        msgService.sendMsg("日志中发现异常", msg.toString());
+        msgService.sendMsg("日志异常", msg.toString());
         eventDao.addLogException(req);
     }
 }
